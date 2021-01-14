@@ -1,0 +1,71 @@
+{
+  "name": "insomniac",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "yarn frontend:prod && run-script-os",
+    "build:macos": "python build-macos.py py2app",
+    "build:windows": "pyinstaller build-windows.spec",
+    "build:linux": "pyinstaller build-linux.spec --onefile",
+    "clean": "run-script-os",
+    "clean:default": "rm -rf dist 2>/dev/null; rm -rf gui 2>/dev/null; rm -rf build 2>/dev/null; ",
+    "clean:windows": "if exist dist rd /S /Q dist & if exist build rd /S /Q build & if exist gui rd /S /Q gui",
+    "dev": "craco start",
+    "frontend:dev": "PUBLIC_URL=. craco build && mv build gui",
+    "frontend:prod": "PUBLIC_URL=. craco build && mv build gui",
+    "init": "npm install && run-script-os",
+    "init:windows": "virtualenv -p python venv-pywebview && .\\venv-pywebview\\Scripts\\pip install -r requirements.txt",
+    "init:linux": "virtualenv -p python3 venv-pywebview && if [[ -z \"${KDE_FULL_SESSION}\" ]]; then yarn init:qt5; else yarn init:gtk; fi",
+    "init:default": "virtualenv -p python3 venv-pywebview && pip install -r requirements.txt",
+    "init:qt5": "pip install pyqt5 pyqtwebengine -r requirements.txt",
+    "init:gtk": "sudo apt install libgirepository1.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-3.0 && pip install pycairo pygobject -r requirements.txt",
+    "start": "yarn frontend:dev && run-script-os",
+    "start:windows": "python src\\index.py",
+    "start:default": "python src/index.py"
+  },
+  "dependencies": {
+    "@craco/craco": "^6.0.0",
+    "@tailwindcss/forms": "^0.2.1",
+    "@tailwindcss/postcss7-compat": "^2.0.2",
+    "@testing-library/jest-dom": "^5.11.4",
+    "@testing-library/react": "^11.1.0",
+    "@testing-library/user-event": "^12.1.10",
+    "@types/jest": "^26.0.15",
+    "@types/node": "^12.0.0",
+    "@types/react": "^16.9.53",
+    "@types/react-dom": "^16.9.8",
+    "autoprefixer": "^9",
+    "postcss": "^7",
+    "react": "^17.0.1",
+    "react-console-emulator": "^5.0.0",
+    "react-dom": "^17.0.1",
+    "react-router-dom": "^5.2.0",
+    "react-scripts": "4.0.1",
+    "sass": "^1.32.2",
+    "typescript": "^4.0.3",
+    "web-vitals": "^0.2.4"
+  },
+  "devDependencies": {
+    "@types/react-router-dom": "^5.1.7",
+    "run-script-os": "1.0.7",
+    "tailwindcss": "npm:@tailwindcss/postcss7-compat"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}
