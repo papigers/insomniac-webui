@@ -29,7 +29,7 @@ export default function ProfileSelect() {
         onChange={onChange}
       >
         {profiles.map((profile, idx) => (
-          <option key={idx} value={idx} selected={activeProfileIndex === idx}>
+          <option key={idx} value={idx}>
             {profile.name}
           </option>
         ))}

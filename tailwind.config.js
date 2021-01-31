@@ -23,6 +23,13 @@ module.exports = {
     extend: {
       margin: {
         '-25': '-6.25rem',
+        '-tabl': '-68px',
+        '-tabr': '-100px',
+        sidebar: '220px',
+      },
+      padding: {
+        tabl: '68px',
+        tabr: '100px',
       },
     },
   },

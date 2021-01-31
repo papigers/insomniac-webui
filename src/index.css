@@ -13,3 +13,11 @@ body,
   display: flex;
   flex-direction: column;
 }
+
+a:not([class]) {
+  @apply text-blue-500 hover:underline;
+}
+
+tr:hover a {
+  @apply underline;
+}

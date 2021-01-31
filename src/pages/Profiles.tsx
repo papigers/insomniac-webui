@@ -1,11 +1,9 @@
 import { useApiContext } from 'ApiContext';
 import ProfileSelect from 'components/ProfileSelect/ProfileSelect';
-import Spinner from 'components/Spinner/Spinner';
 import ParameterForm from '../components/ParameterForm/ParameterForm';
 
 export default function Profiles() {
   const {
-    loaded,
     activeProfile,
     activeProfileIndex,
     editProfile,
@@ -13,17 +11,9 @@ export default function Profiles() {
     profiles,
   } = useApiContext();
 
-  if (!loaded) {
-    return (
-      <div className="flex flex-1 justify-center h-full items-center">
-        <Spinner size={32} />
-      </div>
-    );
-  }
   return (
-    <div className="relative">
-      <div className="bg-white h-16 sticky top-16 z-10 -mb-16 -ml-16 pl-16 -mr-20 pr-20" />
-      <div className="flex sticky top-28 z-10 bg-white pb-4 mb-4 border-b -ml-16 pl-16 -mr-20 pr-20">
+    <>
+      <div className="flex bg-white pb-4 mb-4 border-b -ml-tabl -mr-tabr pr-tabr pl-tabl">
         <ProfileSelect />
         <div className="flex flex-1 items-center justify-end">
           <label>
@@ -62,6 +52,6 @@ export default function Profiles() {
         </div>
       </div>
       <ParameterForm key={activeProfileIndex} />
-    </div>
+    </>
   );
 }

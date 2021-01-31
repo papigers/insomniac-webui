@@ -3,7 +3,7 @@ import logo from 'assets/logo.png';
 export default function Header() {
   return (
     <>
-      <header className="text-gray-700 bg-white border-b body-font sticky top-0 z-20">
+      <header className="text-gray-700 bg-white border-b body-font">
         <div className="container flex flex-col flex-wrap p-5 mx-auto md:items-center md:flex-row h-20">
           <a
             href="/"
