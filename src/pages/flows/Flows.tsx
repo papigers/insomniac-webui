@@ -2,33 +2,24 @@ import { useApiContext } from 'ApiContext';
 import Table, { Column } from 'components/Table/Table';
 import { ReactElement } from 'react';
 import { Link } from 'react-router-dom';
-import { InstagramProfile } from 'types';
+import { Flow } from 'types';
 
-const columns: Column<InstagramProfile>[] = [
+const columns: Column<Flow>[] = [
   {
-    key: 'username',
-    name: 'Username',
-    render: (value, idx, item) => <Link to={`/instagram-profiles/${item.id}`}>{value}</Link>,
-  },
-  {
-    key: 'appId',
-    name: 'App ID',
-  },
-  {
-    key: 'deviceId',
-    name: 'Device',
-    render: (value, idx, item) => <Link to={`/devices/${value}`}>{item?.deviceName ?? value}</Link>,
+    key: 'name',
+    name: 'Name',
+    render: (value, idx, item) => <Link to={`/flows/${item.id}`}>{value}</Link>,
   },
 ];
 
-export default function InstagreamProfiles(): ReactElement {
-  const { instagramProfiles, deleteEntity } = useApiContext();
+export default function Flows(): ReactElement {
+  const { flows, deleteEntity } = useApiContext();
   return (
     <div className="relative flex flex-col flex-1 -ml-tabl -mr-tabr overflow-hidden">
       <div className="flex bg-white pb-4 mb-4 border-b pl-tabl pr-tabr items-center">
-        <h1 className="text-2xl flex-1">Instagram Profiles</h1>
+        <h1 className="text-2xl flex-1">Flows - WIP</h1>
         <div>
-          <Link to="/instagram-profiles/new">
+          <Link to="/flows/new">
             <button className="rounded-md border-blue-600 border bg-blue-500 text-white px-3 py-1 my-2 shadow-sm focus-within:border-blue-600 focus:ring focus-within:ring-blue-600 focus-within:ring-opacity-50 focus:outline-none disabled:pointer-events-none disabled:opacity-70 flex items-center">
               Add
               <svg
@@ -53,10 +44,10 @@ export default function InstagreamProfiles(): ReactElement {
       </div>
       <div className="-mt-4 flex-1  overflow-y-auto">
         <Table
-          name="Instagram Profiles"
+          name="Flows"
           columns={columns}
-          data={instagramProfiles}
-          onDelete={(item) => deleteEntity('instagramProfiles', item.id)}
+          data={flows}
+          onDelete={(item) => deleteEntity('flows', item.id)}
         />
       </div>
     </div>

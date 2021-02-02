@@ -1,6 +1,6 @@
 import classNames from 'classnames';
 
-type Option = {
+export type Option = {
   value: string;
   label: string;
 };
@@ -19,18 +19,25 @@ export default function Select({
 }: SelectProps) {
   return (
     <label htmlFor={name} className={classNames('flex flex-1 items-center', className)}>
-      <span className="text-gray-700 w-60">
-        {label}
-        {required && <span className="text-red-500 ml-1 font-bold">*</span>}
-      </span>
+      {label ? (
+        <span className="text-gray-700 w-60">
+          {label}
+          {required && <span className="text-red-500 ml-1 font-bold">*</span>}
+        </span>
+      ) : null}
       <select
         name={name}
         id={name}
-        className="ml-4 block w-full max-w-sm rounded-md border-gray-400 shadow-sm focus:border-gray-400 focus:ring focus:ring-gray-300 focus:ring-opacity-50 disabled:opacity-50"
+        className={classNames(
+          'block w-full max-w-sm rounded-md border-gray-400 shadow-sm focus:border-gray-400 focus:ring focus:ring-gray-300 focus:ring-opacity-50 disabled:opacity-50',
+          { 'ml-4': !!label },
+        )}
         {...other}
       >
         {options.map((opt) => (
-          <option value={opt.value}>{opt.label}</option>
+          <option value={opt.value} key={opt.value}>
+            {opt.label}
+          </option>
         ))}
       </select>
     </label>

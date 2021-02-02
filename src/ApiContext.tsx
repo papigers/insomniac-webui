@@ -1,13 +1,13 @@
 import { ParamValue } from 'components/Parameter/Parameter';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { Device, Entity, InstagramProfile } from 'types';
+import { BotConfig, Device, Entity, Flow, InstagramProfile } from 'types';
 
 type Profile = {
   name: string;
   params: Record<string, ParamValue>;
 };
 
-type EntityKey = 'devices' | 'instagramProfiles';
+type EntityKey = 'devices' | 'instagramProfiles' | 'botConfigs' | 'flows';
 type EntitiesState = Record<EntityKey, Entity[]>;
 
 interface ApiState extends EntitiesState {
@@ -16,6 +16,8 @@ interface ApiState extends EntitiesState {
   devices: Device[];
   androidDeviceIds: string[];
   instagramProfiles: InstagramProfile[];
+  botConfigs: BotConfig[];
+  flows: Flow[];
 }
 
 // type EntityAdd<T extends Entity> = (key: EntityKey, payload: T) => void;
@@ -43,6 +45,8 @@ const defaultState: ApiState = {
   devices: [],
   androidDeviceIds: [],
   instagramProfiles: [],
+  botConfigs: [],
+  flows: [],
 };
 
 const noop = (...args: any[]) => {};
@@ -76,6 +80,20 @@ export default function ApiContext({ children }: { children: JSX.Element }) {
         ...igp,
         deviceName: (state.devices.find((dev) => dev.id === igp.deviceId) || {}).name,
       })),
+      botConfigs: state.botConfigs.map((cfg) => {
+        const instagramProfile = state.instagramProfiles.find(
+          (prf) => prf.id === cfg.instagramProfileId,
+        );
+        const device = state.devices.find((dev) => dev.id === instagramProfile?.deviceId);
+        return {
+          ...cfg,
+          instagramProfileName: instagramProfile
+            ? `${instagramProfile.username} (${instagramProfile.appId})`
+            : undefined,
+          deviceId: device ? device.id : undefined,
+          deviceName: device?.name,
+        };
+      }),
     }),
     [state],
   );
@@ -98,6 +116,7 @@ export default function ApiContext({ children }: { children: JSX.Element }) {
       const activeProfileIndex = +(localStorage.getItem('activeProfileIndex') || '0');
       const devices = JSON.parse(localStorage.getItem('devices') || '[]');
       const instagramProfiles = JSON.parse(localStorage.getItem('instagramProfiles') || '[]');
+      const botConfigs = JSON.parse(localStorage.getItem('botConfigs') || '[]');
       const androidDeviceIds = ['android1', 'android2'];
       setPartialState({
         profiles: profiles && profiles.length ? profiles : defaultState.profiles,
@@ -105,6 +124,7 @@ export default function ApiContext({ children }: { children: JSX.Element }) {
         devices,
         instagramProfiles,
         androidDeviceIds,
+        botConfigs,
       });
       setLoaded(true);
     });
@@ -118,6 +138,7 @@ export default function ApiContext({ children }: { children: JSX.Element }) {
       localStorage.setItem('activeProfileIndex', JSON.stringify(state.activeProfileIndex));
       localStorage.setItem('devices', JSON.stringify(state.devices));
       localStorage.setItem('instagramProfiles', JSON.stringify(state.instagramProfiles));
+      localStorage.setItem('botConfigs', JSON.stringify(state.botConfigs));
     }
   }, [state, loaded]);
 

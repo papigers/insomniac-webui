@@ -1,4 +1,5 @@
 import { useApiContext } from 'ApiContext';
+import Bool from 'components/Bool/Bool';
 import Table, { Column } from 'components/Table/Table';
 import { ReactElement } from 'react';
 import { Link } from 'react-router-dom';
@@ -13,6 +14,11 @@ const columns: Column<Device>[] = [
   {
     key: 'androidDeviceId',
     name: 'ID',
+  },
+  {
+    key: 'old',
+    name: 'Old UIAutomator',
+    render: (value) => <Bool value={!!value} />,
   },
 ];
 

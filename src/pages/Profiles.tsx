@@ -1,6 +1,6 @@
 import { useApiContext } from 'ApiContext';
 import ProfileSelect from 'components/ProfileSelect/ProfileSelect';
-import ParameterForm from '../components/ParameterForm/ParameterForm';
+// import ParameterForm from '../components/ParameterForm/ParameterForm';
 
 export default function Profiles() {
   const {
@@ -51,7 +51,7 @@ export default function Profiles() {
           </button>
         </div>
       </div>
-      <ParameterForm key={activeProfileIndex} />
+      {/* <ParameterForm key={activeProfileIndex} /> */}
     </>
   );
 }

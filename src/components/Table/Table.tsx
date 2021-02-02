@@ -5,14 +5,15 @@ import classNames from 'classnames';
 export type Column<T extends Entity> = {
   key: string;
   name: string;
-  render?: (value: T[keyof T], index: number, item: T, all: T[]) => ReactNode;
+  render?: (value: T[keyof T], index: number, item: T, all: T[]) => T[keyof T] | string | ReactNode;
 };
 
-interface Props<T extends Entity> {
+export interface TableProps<T extends Entity> {
   columns: Column<T>[];
   data: T[];
   onDelete?: (item: T) => void;
   name?: string;
+  compact?: boolean;
 }
 
 const defaultRender = (value: any) => value;
@@ -22,7 +23,8 @@ export default function Table<T extends Entity>({
   data,
   onDelete,
   name = 'Data',
-}: Props<T>): ReactElement {
+  compact = false,
+}: TableProps<T>): ReactElement {
   return (
     <table className="border-collapse table-auto w-full whitespace-no-wrap bg-white table-striped relative flex-1">
       <thead>
@@ -32,7 +34,10 @@ export default function Table<T extends Entity>({
               key={col.key}
               className={classNames(
                 'bg-gray-200 sticky top-0 border-b border-gray-300 px-6 py-3 text-gray-600 font-bold tracking-wider uppercase text-xs',
-                { 'pl-tabl': i === 0, 'pr-tabr': i === columns.length - 1 && !onDelete },
+                {
+                  'pl-tabl': i === 0 && !compact,
+                  'pr-tabr': i === columns.length - 1 && !onDelete && !compact,
+                },
               )}
             >
               {col.name}
@@ -65,8 +70,8 @@ export default function Table<T extends Entity>({
                 >
                   <span
                     className={classNames('text-gray-700 px-6 py-3 flex items-center', {
-                      'pl-tabl': i === 0,
-                      'pr-tabr': i === columns.length - 1,
+                      'pl-tabl': i === 0 && !compact,
+                      'pr-tabr': i === columns.length - 1 && !compact,
                     })}
                   >
                     {(col.render ?? defaultRender)(item[col.key], index, item, data)}

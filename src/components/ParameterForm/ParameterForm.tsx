@@ -2,13 +2,13 @@ import { useApiContext } from 'ApiContext';
 import { useState, useCallback, useMemo } from 'react';
 import Parameter, { ParamValue } from '../Parameter/Parameter';
 import Terminal from '../Terminal/Terminal';
-import parameters, { categories } from './parameters';
+// import parameters, { categories } from './parameters';
 
-const tabs = categories;
+// const tabs = categories;
 
 export default function ParameterForm() {
   // const [params, setParams] = useState<Params>({});
-  const [activeTab, setActiveTab] = useState(tabs[0]);
+  // const [activeTab, setActiveTab] = useState(tabs[0]);
   const { activeProfileIndex, activeProfile, editProfile } = useApiContext();
 
   const params = useMemo(() => activeProfile.params || {}, [activeProfile.params]);
@@ -50,7 +50,7 @@ export default function ParameterForm() {
   return (
     <>
       <div className="flex border-b border-gray-200 mb-4 bg-white -ml-tabl -mr-tabr pr-tabr pl-tabl">
-        {tabs.map((tab) => (
+        {/* {tabs.map((tab) => (
           <button
             key={tab}
             className={`px-6 py-3 border-gray-400 hover:bg-gray-100 outline-none ring-0 focus:ring-0 focus:outline-none border-0 ${
@@ -60,11 +60,11 @@ export default function ParameterForm() {
           >
             {tab}
           </button>
-        ))}
+        ))} */}
       </div>
       <div className="-mt-4 flex flex-col flex-1 -ml-tabl -mr-tabr">
         <div className="flex-1 overflow-auto pl-tabl pr-tabr divide-y-2 divide-gray-100">
-          {parameters
+          {/* {parameters
             .filter((param) => param.category === activeTab)
             .map((param) => (
               <Parameter
@@ -73,7 +73,7 @@ export default function ParameterForm() {
                 onChange={onChange}
                 value={params[param.name]}
               />
-            ))}
+            ))} */}
         </div>
         <div className=" bg-white py-6 flex-shrink flex-grow-0 pl-tabl pr-tabr">
           <div className="relative">

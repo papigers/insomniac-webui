@@ -1,6 +1,4 @@
-import Profiles from '../../pages/Profiles';
 import { Switch, Route, Redirect } from 'react-router-dom';
-import Page2 from 'pages/Page2';
 import RouteLink from 'components/RouteLink/RouteLink';
 import Devices from 'pages/devices/Devices';
 import EditDevice from 'pages/devices/EditDevice';
@@ -8,6 +6,10 @@ import Spinner from 'components/Spinner/Spinner';
 import { useApiContext } from 'ApiContext';
 import InstagreamProfiles from 'pages/instagramProfiles/InstagramProfiles';
 import EditInstagramProfile from 'pages/instagramProfiles/EditInstagramProfile';
+import BotConfigs from 'pages/botConfigs/BotConfigs';
+import EditBotConfig from 'pages/botConfigs/EditBotConfig';
+import Flows from 'pages/flows/Flows';
+import EditFlow from 'pages/flows/EditFlow';
 
 const tabs = [
   {
@@ -23,14 +25,16 @@ const tabs = [
     singleComponent: EditInstagramProfile,
   },
   {
-    name: 'Page 1',
-    href: '/page1',
-    component: Profiles,
+    name: 'Bot Configs',
+    href: '/bot-configs',
+    component: BotConfigs,
+    singleComponent: EditBotConfig,
   },
   {
-    name: 'Page 2',
-    href: '/page2',
-    component: Page2,
+    name: 'Flows',
+    href: '/flows',
+    component: Flows,
+    singleComponent: EditFlow,
   },
 ];
 
@@ -38,7 +42,7 @@ export default function Main() {
   const { loaded } = useApiContext();
   return (
     <div className="w-full bg-white flex flex-1 overflow-hidden">
-      <nav className="container w-80 md:block px-5 pl-24 pt-5 border-r md:overflow-y-auto h-full bg-gray-50">
+      <nav className="container w-80 md:block px-5 pl-24 pt-5 border-r md:overflow-y-auto h-full bg-gray-50 flex-shrink-0">
         {tabs.map((tab, idx) => (
           <RouteLink {...tab} key={idx} />
         ))}

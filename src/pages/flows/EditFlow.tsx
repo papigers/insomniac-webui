@@ -2,36 +2,30 @@ import { FormEvent, ReactElement, useCallback, useEffect, useState } from 'react
 import { useApiContext } from 'ApiContext';
 import { useHistory, useRouteMatch } from 'react-router-dom';
 import TextInput from 'components/TextInput/TextInput';
-import { InstagramProfile } from 'types';
-import Select from 'components/Select/Select';
+import { Flow } from 'types';
 import * as yup from 'yup';
 import { uid } from 'uid';
 
 const schema = yup.object().shape({
-  username: yup.string().required().label('Username'),
-  appId: yup.string().required().label('App ID'),
-  deviceId: yup.string().required().label('Device'),
+  name: yup.string().required().label('Name'),
 });
 
-export default function EditInstagramProfile(): ReactElement {
-  const { devices, instagramProfiles, addEntity, editEntity } = useApiContext();
-  const match = useRouteMatch<{ id: string }>('/instagram-profiles/:id');
+export default function EditFlow(): ReactElement {
+  const { flows, editEntity, addEntity } = useApiContext();
+  const match = useRouteMatch<{ id: string }>('/flows/:id');
   const id = match?.params?.id;
-  const profile = (id && id !== 'new' ? instagramProfiles.find((ig) => ig.id === id) : null) || {
-    deviceId: devices[0].id,
-  };
-  const [state, setState] = useState<Partial<InstagramProfile>>(profile);
+  const flow = (id && id !== 'new' ? flows.find((flow) => flow.id === id) : null) || {};
+  const [state, setState] = useState<Partial<Flow>>(flow);
   const isNew = !('id' in state);
   const history = useHistory();
   const [isValid, setIsValid] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
 
-  useEffect(() => {
-    setState((state) => ({
-      ...state,
-      deviceId: state.deviceId || devices[0].id,
-    }));
-  }, [devices]);
+  // useEffect(() => {
+  //   setState((state) => ({
+  //     ...state,
+  //   }));
+  // }, [androidDeviceIds]);
 
   useEffect(() => {
     schema
@@ -39,16 +33,17 @@ export default function EditInstagramProfile(): ReactElement {
       .then(() => setIsValid(true))
       .catch((err) => {
         setIsValid(false);
-        if (state[err.path as keyof InstagramProfile] !== undefined) {
+        if (state[err.path as keyof Flow] !== undefined) {
           setErrors(err.errors);
         }
       });
   }, [state]);
 
   const setAttribute = useCallback((event) => {
+    const value = event.target.type === 'checkbox' ? event.target.checked : event.target.value;
     setState((state) => ({
       ...state,
-      [event.target.name]: event.target.value,
+      [event.target.name]: value,
     }));
   }, []);
 
@@ -61,13 +56,13 @@ export default function EditInstagramProfile(): ReactElement {
       try {
         schema.validate(state);
         if (isNew) {
-          addEntity('instagramProfiles', {
+          addEntity('flows', {
             ...state,
             id: uid(),
           });
         } else {
-          const profile = state as InstagramProfile;
-          editEntity('instagramProfiles', profile.id, profile);
+          const flow = state as Flow;
+          editEntity('flows', flow.id, flow);
         }
         history.goBack();
       } catch (err) {
@@ -103,9 +98,7 @@ export default function EditInstagramProfile(): ReactElement {
             </svg>
           </button>
         </div>
-        <h1 className="text-2xl flex-1">
-          Instagram Profiles - {isNew ? 'Add' : 'Edit'} Instagram Profile
-        </h1>
+        <h1 className="text-2xl flex-1">Flows - {isNew ? 'Add' : 'Edit'} Flow</h1>
         <div>
           <button
             className="rounded-md border-green-600 border bg-green-500 text-white px-3 py-1 my-2 shadow-sm focus-within:border-green-600 focus:ring focus-within:ring-green-600 focus-within:ring-opacity-50 focus:outline-none disabled:pointer-events-none disabled:opacity-70 flex items-center"
@@ -143,28 +136,10 @@ export default function EditInstagramProfile(): ReactElement {
         ) : null}
         <TextInput
           required
-          label="Username"
-          value={state.username || ''}
+          label="Name"
+          value={state.name || ''}
           onChange={setAttribute}
-          name="username"
-          className="py-4"
-        />
-        <TextInput
-          required
-          label="App ID"
-          value={state.appId || ''}
-          onChange={setAttribute}
-          placeholder="com.instagram.android"
-          name="appId"
-          className="py-4"
-        />
-        <Select
-          required
-          label="Device"
-          value={state.deviceId || ''}
-          onChange={setAttribute}
-          name="deviceId"
-          options={devices.map((dev) => ({ label: dev.name, value: dev.id }))}
+          name="name"
           className="py-4"
         />
       </form>

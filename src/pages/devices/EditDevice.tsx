@@ -1,4 +1,4 @@
-import { FormEvent, FormEventHandler, ReactElement, useCallback, useEffect, useState } from 'react';
+import { FormEvent, ReactElement, useCallback, useEffect, useState } from 'react';
 import { useApiContext } from 'ApiContext';
 import { useHistory, useRouteMatch } from 'react-router-dom';
 import TextInput from 'components/TextInput/TextInput';
@@ -6,10 +6,12 @@ import { Device } from 'types';
 import Select from 'components/Select/Select';
 import * as yup from 'yup';
 import { uid } from 'uid';
+import Checkbox from 'components/Checkbox/Checkbox';
 
 const schema = yup.object().shape({
   name: yup.string().required().label('Name'),
   androidDeviceId: yup.string().required().label('Android Device ID'),
+  old: yup.bool().default(false).label('Old UIAutomator'),
 });
 
 export default function EditDevice(): ReactElement {
@@ -17,6 +19,7 @@ export default function EditDevice(): ReactElement {
   const match = useRouteMatch<{ id: string }>('/devices/:id');
   const id = match?.params?.id;
   const device = (id && id !== 'new' ? devices.find((dev) => dev.id === id) : null) || {
+    old: false,
     androidDeviceId: androidDeviceIds[0],
   };
   const [state, setState] = useState<Partial<Device>>(device);
@@ -45,9 +48,10 @@ export default function EditDevice(): ReactElement {
   }, [state]);
 
   const setAttribute = useCallback((event) => {
+    const value = event.target.type === 'checkbox' ? event.target.checked : event.target.value;
     setState((state) => ({
       ...state,
-      [event.target.name]: event.target.value,
+      [event.target.name]: value,
     }));
   }, []);
 
@@ -153,6 +157,13 @@ export default function EditDevice(): ReactElement {
           onChange={setAttribute}
           name="androidDeviceId"
           options={androidDeviceIds.map((id) => ({ value: id, label: id }))}
+          className="py-4"
+        />
+        <Checkbox
+          label="Old UIAutomator"
+          checked={state.old || false}
+          onChange={setAttribute}
+          name="old"
           className="py-4"
         />
       </form>
