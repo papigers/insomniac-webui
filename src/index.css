@@ -18,10 +18,6 @@ a:not([class]) {
   @apply text-blue-500 hover:underline;
 }
 
-tr:hover a {
-  @apply underline;
-}
-
 .slider {
   .input-range__slider {
     @apply bg-red-400 border-red-400;

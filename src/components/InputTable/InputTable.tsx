@@ -2,6 +2,7 @@ import React, {
   ChangeEvent,
   Dispatch,
   ReactElement,
+  SyntheticEvent,
   useCallback,
   useMemo,
   useRef,
@@ -21,10 +22,12 @@ type Input<T> = {
 } & (
   | {
       type: 'string' | 'number';
+      default?: string | number;
       props?: (item: T) => Omit<TextInputProps, 'value' | 'onChange'>;
     }
   | {
       type: 'checkbox';
+      default?: boolean;
       props?: (item: T) => Omit<CheckboxProps, 'value' | 'onChange'>;
     }
   | {
@@ -40,9 +43,13 @@ interface Props<T extends Omit<Entity, 'id'>>
   onChange: Dispatch<T[]>;
   inputs: Input<T>[];
   disabled?: boolean;
+  orderable?: boolean;
 }
 
 function getInputDefaults<T>(input: Input<T>) {
+  if (input.default) {
+    return input.default;
+  }
   switch (input.type) {
     case 'string':
       return '';
@@ -62,6 +69,7 @@ export default function InputTable<T extends object>({
   inputs,
   disabled = false,
   onChange,
+  orderable = false,
   ...other
 }: Props<T>): ReactElement {
   const defaultNewEntryRef = useRef(
@@ -78,13 +86,51 @@ export default function InputTable<T extends object>({
   );
   const [newEntry, setNewEntry] = useState<Partial<T>>({ ...defaultNewEntryRef.current });
 
-  const onAdd = useCallback(() => {
-    onChange([...value, newEntry as T]);
-    setNewEntry({ ...defaultNewEntryRef.current });
-  }, [newEntry, onChange, value]);
+  const onMoveUp = useCallback(
+    (index: number, e: SyntheticEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (index > 0) {
+        onChange([
+          ...value.slice(0, index - 1),
+          value[index],
+          value[index - 1],
+          ...value.slice(index + 1),
+        ]);
+      }
+    },
+    [value, onChange],
+  );
+  const onMoveDown = useCallback(
+    (index: number, e: SyntheticEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (index < value.length) {
+        onChange([
+          ...value.slice(0, index),
+          value[index + 1],
+          value[index],
+          ...value.slice(index + 2),
+        ]);
+      }
+    },
+    [value, onChange],
+  );
+
+  const onAdd = useCallback(
+    (e: SyntheticEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      onChange([...value, newEntry as T]);
+      setNewEntry({ ...defaultNewEntryRef.current });
+    },
+    [newEntry, onChange, value],
+  );
 
   const onDelete = useCallback(
-    (index) => {
+    (index, e: SyntheticEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
       onChange([...value.slice(0, index), ...value.slice(index + 1)]);
     },
     [onChange, value],
@@ -129,6 +175,7 @@ export default function InputTable<T extends object>({
           <TextInput
             value={value}
             onChange={(e: ChangeEvent<HTMLInputElement>) => onChange(e.target.value)}
+            type={input.type === 'string' ? 'text' : 'number'}
             {...(props as TextInputProps)}
           />
         );
@@ -172,11 +219,11 @@ export default function InputTable<T extends object>({
       {
         key: 'action',
         name: '',
-        render: (value: any, index: number, item: E) => (
-          <div className={classNames('text-right w-full')}>
+        render: (value: any, index: number, item: E, all: E[]) => (
+          <div className={classNames('flex text-right w-full items-center space-x-2 justify-end')}>
             {item.id === 'new' ? (
               <button
-                className="rounded-md border-blue-700 border bg-blue-600 text-white px-3 py-1 shadow-sm focus-within:border-blue-700 focus:ring focus-within:ring-blue-700 focus-within:ring-opacity-50 focus:outline-none disabled:pointer-events-none disabled:opacity-50 inline-flex items-center"
+                className="rounded-md border-blue-700 border bg-blue-600 text-white px-2 py-1 shadow-sm focus-within:border-blue-700 focus:ring focus-within:ring-blue-700 focus-within:ring-opacity-50 focus:outline-none disabled:pointer-events-none disabled:opacity-50 inline-flex items-center text-xs"
                 disabled={
                   disabled ||
                   !inputs
@@ -190,10 +237,10 @@ export default function InputTable<T extends object>({
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"
-                  width="20"
-                  height="20"
+                  width="16"
+                  height="16"
                   stroke="currentColor"
-                  className="inline ml-3"
+                  className="inline ml-1"
                 >
                   <path
                     strokeLinecap="round"
@@ -204,33 +251,78 @@ export default function InputTable<T extends object>({
                 </svg>
               </button>
             ) : (
-              <button
-                className="rounded-md border-red-700 border bg-red-600 text-white px-3 py-1 shadow-sm focus-within:border-red-700 focus:ring focus-within:ring-red-700 focus-within:ring-opacity-50 focus:outline-none disabled:pointer-events-none disabled:opacity-50 inline-flex items-center"
-                disabled={disabled}
-                onClick={onDelete.bind(null, index)}
-              >
-                Delete
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 20 20"
-                  width="20"
-                  height="20"
-                  fill="currentColor"
-                  className="ml-3 inline"
+              <>
+                {orderable ? (
+                  <>
+                    <button
+                      className="rounded-md border-gray-700 border bg-gray-600 text-white px-1 py-1 shadow-sm focus-within:border-gray-700 focus:ring focus-within:ring-gray-700 focus-within:ring-opacity-50 focus:outline-none disabled:pointer-events-none disabled:opacity-50 inline-flex items-center text-xs"
+                      disabled={disabled || index === all.length - 2}
+                      onClick={onMoveDown.bind(null, index)}
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 20 20"
+                        width="16"
+                        height="16"
+                        fill="currentColor"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v3.586L7.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 10.586V7z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </button>
+
+                    <button
+                      className="rounded-md border-gray-700 border bg-gray-600 text-white px-1 py-1 shadow-sm focus-within:border-gray-700 focus:ring focus-within:ring-gray-700 focus-within:ring-opacity-50 focus:outline-none disabled:pointer-events-none disabled:opacity-50 inline-flex items-center text-xs"
+                      disabled={disabled || index === 0}
+                      onClick={onMoveUp.bind(null, index)}
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                        width="16"
+                        height="16"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13a1 1 0 102 0V9.414l1.293 1.293a1 1 0 001.414-1.414z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </button>
+                  </>
+                ) : null}
+                <button
+                  className="rounded-md border-red-700 border bg-red-600 text-white px-2 py-1 shadow-sm focus-within:border-red-700 focus:ring focus-within:ring-red-700 focus-within:ring-opacity-50 focus:outline-none disabled:pointer-events-none disabled:opacity-50 inline-flex items-center text-xs"
+                  disabled={disabled}
+                  onClick={onDelete.bind(null, index)}
                 >
-                  <path
-                    fillRule="evenodd"
-                    d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </button>
+                  Delete
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                    width="16"
+                    height="16"
+                    fill="currentColor"
+                    className="ml-1 inline"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </button>
+              </>
             )}
           </div>
         ),
       },
     ],
-    [disabled, inputs, onAdd, onDelete, onEdit, renderInput],
+    [disabled, inputs, onAdd, onDelete, onEdit, onMoveDown, onMoveUp, orderable, renderInput],
   );
   return (
     <div

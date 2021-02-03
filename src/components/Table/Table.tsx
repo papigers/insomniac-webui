@@ -8,12 +8,18 @@ export type Column<T extends Entity> = {
   render?: (value: T[keyof T], index: number, item: T, all: T[]) => T[keyof T] | string | ReactNode;
 };
 
+export type ExtraAction<T> = {
+  color: string;
+  children: ReactNode;
+  onClick: (item: T, index: number) => void;
+};
 export interface TableProps<T extends Entity> {
   columns: Column<T>[];
   data: T[];
   onDelete?: (item: T) => void;
   name?: string;
   compact?: boolean;
+  extraActions?: ExtraAction<T>[];
 }
 
 const defaultRender = (value: any) => value;
@@ -24,7 +30,10 @@ export default function Table<T extends Entity>({
   onDelete,
   name = 'Data',
   compact = false,
+  extraActions = [],
 }: TableProps<T>): ReactElement {
+  const gotActions = !!(onDelete || extraActions.length);
+
   return (
     <table className="border-collapse table-auto w-full whitespace-no-wrap bg-white table-striped relative flex-1">
       <thead>
@@ -36,14 +45,14 @@ export default function Table<T extends Entity>({
                 'bg-gray-200 sticky top-0 border-b border-gray-300 px-6 py-3 text-gray-600 font-bold tracking-wider uppercase text-xs',
                 {
                   'pl-tabl': i === 0 && !compact,
-                  'pr-tabr': i === columns.length - 1 && !onDelete && !compact,
+                  'pr-tabr': i === columns.length - 1 && !gotActions && !compact,
                 },
               )}
             >
               {col.name}
             </th>
           ))}
-          {onDelete ? (
+          {gotActions ? (
             <th
               className={classNames(
                 'bg-gray-200 sticky top-0 border-b border-gray-300 px-6 py-3 text-gray-600 font-bold tracking-wider uppercase text-xs pr-tabr text-right',
@@ -78,32 +87,45 @@ export default function Table<T extends Entity>({
                   </span>
                 </td>
               ))}
-              {onDelete ? (
+              {gotActions ? (
                 <td
                   className={classNames('border-t border-gray-200 text-right pr-tabr', {
                     'border-b': index === data.length - 1,
                   })}
                 >
-                  <button
-                    className="rounded-md border-red-700 border bg-red-600 text-white px-3 py-1 shadow-sm focus-within:border-red-700 focus:ring focus-within:ring-red-700 focus-within:ring-opacity-50 focus:outline-none disabled:pointer-events-none disabled:opacity-70 inline-flex items-center"
-                    onClick={() => onDelete(item)}
-                  >
-                    Delete
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 20 20"
-                      width="20"
-                      height="20"
-                      fill="currentColor"
-                      className="ml-3 inline"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </button>
+                  <div className="flex space-x-2">
+                    {extraActions.map((action, i) => (
+                      <button
+                        key={i}
+                        className={`rounded-md border-${action.color}-700 border bg-${action.color}-600 text-white px-2 py-1 shadow-sm focus-within:border-${action.color}-700 focus:ring focus-within:ring-${action.color}-700 focus-within:ring-opacity-50 focus:outline-none disabled:pointer-events-none disabled:opacity-70 inline-flex items-center text-xs`}
+                        onClick={() => action.onClick(item, index)}
+                      >
+                        {action.children}
+                      </button>
+                    ))}
+                    {onDelete ? (
+                      <button
+                        className="rounded-md border-red-700 border bg-red-600 text-white px-2 py-1 shadow-sm focus-within:border-red-700 focus:ring focus-within:ring-red-700 focus-within:ring-opacity-50 focus:outline-none disabled:pointer-events-none disabled:opacity-70 inline-flex items-center text-xs"
+                        onClick={() => onDelete(item)}
+                      >
+                        Delete
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewBox="0 0 20 20"
+                          width="16"
+                          height="16"
+                          fill="currentColor"
+                          className="ml-1 inline"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      </button>
+                    ) : null}
+                  </div>
                 </td>
               ) : null}
             </tr>
@@ -112,7 +134,7 @@ export default function Table<T extends Entity>({
           <tr className="bg-gray-50 text-center">
             <td
               className="border-t border-b border-gray-200 py-6"
-              colSpan={columns.length + (onDelete ? 1 : 0)}
+              colSpan={columns.length + (gotActions ? 1 : 0)}
             >
               No {name}
             </td>

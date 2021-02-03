@@ -195,9 +195,16 @@ export type BotConfig = {
       }
   );
 
+export type FlowConfigStep = {
+  configId: string;
+  configName?: string;
+  repeat: number;
+};
+
 export type Flow = {
   id: string;
   name: string;
   deviceId: string;
-  configIds: string[];
+  deviceName?: string;
+  configs: FlowConfigStep[];
 };

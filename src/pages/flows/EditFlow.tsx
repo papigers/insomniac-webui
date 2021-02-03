@@ -1,31 +1,64 @@
-import { FormEvent, ReactElement, useCallback, useEffect, useState } from 'react';
+import { FormEvent, ReactElement, useCallback, useEffect, useMemo, useState } from 'react';
 import { useApiContext } from 'ApiContext';
 import { useHistory, useRouteMatch } from 'react-router-dom';
 import TextInput from 'components/TextInput/TextInput';
 import { Flow } from 'types';
 import * as yup from 'yup';
 import { uid } from 'uid';
+import Select from 'components/Select/Select';
+import InputTable from 'components/InputTable/InputTable';
+import usePrevious from 'hooks/usePrevious';
 
 const schema = yup.object().shape({
   name: yup.string().required().label('Name'),
+  deviceId: yup.string().required().label('Device'),
+  configs: yup
+    .array()
+    .of(
+      yup.object({
+        configId: yup.string().required().label('Bot Config'),
+        repeat: yup.number().integer().min(1).required().label('Repeat'),
+      }),
+    )
+    .required()
+    .min(1)
+    .label('Bot Configs'),
 });
 
 export default function EditFlow(): ReactElement {
-  const { flows, editEntity, addEntity } = useApiContext();
+  const { flows, devices, botConfigs, editEntity, addEntity } = useApiContext();
   const match = useRouteMatch<{ id: string }>('/flows/:id');
   const id = match?.params?.id;
-  const flow = (id && id !== 'new' ? flows.find((flow) => flow.id === id) : null) || {};
+  const flow = (id && id !== 'new' ? flows.find((flow) => flow.id === id) : null) || {
+    deviceId: devices[0].id,
+  };
   const [state, setState] = useState<Partial<Flow>>(flow);
+  const previousDeviceId = usePrevious(state.deviceId);
   const isNew = !('id' in state);
   const history = useHistory();
   const [isValid, setIsValid] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
 
-  // useEffect(() => {
-  //   setState((state) => ({
-  //     ...state,
-  //   }));
-  // }, [androidDeviceIds]);
+  const deviceBotConfigs = useMemo(
+    () => botConfigs.filter((config) => config.deviceId === state.deviceId),
+    [botConfigs, state.deviceId],
+  );
+
+  useEffect(() => {
+    setState((state) => ({
+      ...state,
+      deviceId: state.deviceId || devices[0].id,
+    }));
+  }, [devices]);
+
+  useEffect(() => {
+    if (state.deviceId !== previousDeviceId && previousDeviceId) {
+      setState((state) => ({
+        ...state,
+        configs: [],
+      }));
+    }
+  }, [state.deviceId, previousDeviceId]);
 
   useEffect(() => {
     schema
@@ -33,7 +66,9 @@ export default function EditFlow(): ReactElement {
       .then(() => setIsValid(true))
       .catch((err) => {
         setIsValid(false);
-        if (state[err.path as keyof Flow] !== undefined) {
+        const firstPathMatch = err.path.match(/^([^[.]+)/);
+        const path = firstPathMatch ? firstPathMatch[1] : err.path;
+        if (state[path as keyof Flow] !== undefined) {
           setErrors(err.errors);
         }
       });
@@ -47,12 +82,17 @@ export default function EditFlow(): ReactElement {
     }));
   }, []);
 
+  const setParameter = useCallback((name, value) => {
+    setState((state) => ({
+      ...state,
+      [name]: value,
+    }));
+  }, []);
+
   const onSave = useCallback(
     (e?: FormEvent) => {
-      if (e) {
-        e.preventDefault();
-        e.stopPropagation();
-      }
+      e?.stopPropagation();
+      e?.preventDefault();
       try {
         schema.validate(state);
         if (isNew) {
@@ -104,6 +144,7 @@ export default function EditFlow(): ReactElement {
             className="rounded-md border-green-600 border bg-green-500 text-white px-3 py-1 my-2 shadow-sm focus-within:border-green-600 focus:ring focus-within:ring-green-600 focus-within:ring-opacity-50 focus:outline-none disabled:pointer-events-none disabled:opacity-70 flex items-center"
             disabled={!isValid}
             onClick={onSave}
+            form="edit-flow"
           >
             Save
             <svg
@@ -124,10 +165,11 @@ export default function EditFlow(): ReactElement {
         </div>
       </div>
       <form
+        id="edit-flow"
         className="-mt-4 flex-1  overflow-y-auto pl-tabl pr-tabr py-10 divide-y-2 divide-gray-100"
         onSubmit={onSave}
       >
-        {errors.length ? (
+        {errors.length && !isValid ? (
           <ul className="pb-4 -mt-4 list-disc list-inside">
             {errors.map((err) => (
               <li className="text-red-500">{err}</li>
@@ -141,6 +183,46 @@ export default function EditFlow(): ReactElement {
           onChange={setAttribute}
           name="name"
           className="py-4"
+        />
+        <Select
+          required
+          label="Device"
+          value={state.deviceId || ''}
+          onChange={setAttribute}
+          name="deviceId"
+          options={devices.map((dev) => ({ label: dev.name, value: dev.id }))}
+          className="py-4"
+        />
+        <InputTable
+          onChange={(val) => setParameter('configs', val)}
+          disabled={!deviceBotConfigs.length}
+          orderable
+          inputs={[
+            {
+              key: 'configId',
+              type: 'select',
+              name: 'Bot Config',
+              default: deviceBotConfigs[0]?.id,
+              props: () => ({
+                options: deviceBotConfigs.map((config) => ({
+                  value: config.id,
+                  label: config.name,
+                })),
+              }),
+            },
+            {
+              key: 'repeat',
+              type: 'number',
+              name: 'Repeat',
+              default: 1,
+              props: () => ({
+                step: 1,
+                min: 1,
+              }),
+            },
+          ]}
+          value={state.configs || []}
+          name="Configs"
         />
       </form>
     </div>

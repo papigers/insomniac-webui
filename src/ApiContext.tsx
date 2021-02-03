@@ -30,7 +30,7 @@ interface ApiContextValue extends ApiState {
   setActiveProfile: (idx: number) => void;
   deleteProfile: (idx: number) => void;
   editProfile: (idx: number, profile: Profile) => void;
-  addEntity: (key: EntityKey, payload: Entity) => void;
+  addEntity: (key: EntityKey, payload: Entity, index?: number) => void;
   editEntity: (key: EntityKey, id: string, payload: Entity) => void;
   deleteEntity: (key: EntityKey, id: string) => void;
 }
@@ -94,6 +94,14 @@ export default function ApiContext({ children }: { children: JSX.Element }) {
           deviceName: device?.name,
         };
       }),
+      flows: state.flows.map((flow) => ({
+        ...flow,
+        deviceName: (state.devices.find((dev) => dev.id === flow.deviceId) || {}).name,
+        configs: flow.configs.map((config) => ({
+          ...config,
+          configName: (state.botConfigs.find((cfg) => cfg.id === config.configId) || {}).name,
+        })),
+      })),
     }),
     [state],
   );
@@ -117,6 +125,7 @@ export default function ApiContext({ children }: { children: JSX.Element }) {
       const devices = JSON.parse(localStorage.getItem('devices') || '[]');
       const instagramProfiles = JSON.parse(localStorage.getItem('instagramProfiles') || '[]');
       const botConfigs = JSON.parse(localStorage.getItem('botConfigs') || '[]');
+      const flows = JSON.parse(localStorage.getItem('flows') || '[]');
       const androidDeviceIds = ['android1', 'android2'];
       setPartialState({
         profiles: profiles && profiles.length ? profiles : defaultState.profiles,
@@ -125,6 +134,7 @@ export default function ApiContext({ children }: { children: JSX.Element }) {
         instagramProfiles,
         androidDeviceIds,
         botConfigs,
+        flows,
       });
       setLoaded(true);
     });
@@ -139,6 +149,7 @@ export default function ApiContext({ children }: { children: JSX.Element }) {
       localStorage.setItem('devices', JSON.stringify(state.devices));
       localStorage.setItem('instagramProfiles', JSON.stringify(state.instagramProfiles));
       localStorage.setItem('botConfigs', JSON.stringify(state.botConfigs));
+      localStorage.setItem('flows', JSON.stringify(state.flows));
     }
   }, [state, loaded]);
 
@@ -156,10 +167,12 @@ export default function ApiContext({ children }: { children: JSX.Element }) {
         setPartialState({
           [key]: (state[key] as Entity[]).map((entity) => (entity.id === id ? payload : entity)),
         }),
-      addEntity: (key, payload) => {
-        console.log(key, payload);
+      addEntity: (key, payload, index?: number) => {
         setPartialState({
-          [key]: [...state[key], payload],
+          [key]:
+            index !== undefined
+              ? [...state[key].slice(0, index), payload, ...state[key].slice(index)]
+              : [...state[key], payload],
         });
       },
       deleteProfile: (idx: number) =>

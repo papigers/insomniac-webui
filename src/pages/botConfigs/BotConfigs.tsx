@@ -4,6 +4,7 @@ import { ReactElement } from 'react';
 import { Link } from 'react-router-dom';
 import { BotConfig } from 'types';
 import _capitalize from 'lodash/capitalize';
+import { uid } from 'uid';
 
 const columns: Column<BotConfig>[] = [
   {
@@ -31,7 +32,7 @@ const columns: Column<BotConfig>[] = [
 ];
 
 export default function BotConfigs(): ReactElement {
-  const { botConfigs, deleteEntity } = useApiContext();
+  const { botConfigs, deleteEntity, addEntity } = useApiContext();
   return (
     <div className="relative flex flex-col flex-1 -ml-tabl -mr-tabr overflow-hidden">
       <div className="flex bg-white pb-4 mb-4 border-b pl-tabl pr-tabr items-center">
@@ -60,12 +61,43 @@ export default function BotConfigs(): ReactElement {
           </Link>
         </div>
       </div>
-      <div className="-mt-4 flex-1  overflow-y-auto">
+      <div className="-mt-4 flex-1 overflow-y-auto">
         <Table
           name="Bot Configs"
           columns={columns}
           data={botConfigs}
           onDelete={(item) => deleteEntity('botConfigs', item.id)}
+          extraActions={[
+            {
+              color: 'gray',
+              onClick: (item, index) =>
+                addEntity(
+                  'botConfigs',
+                  {
+                    ...item,
+                    id: uid(),
+                    name: `${item.name} Copy`,
+                  },
+                  index + 1,
+                ),
+              children: (
+                <>
+                  Copy
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    className="inline ml-1"
+                    width="16"
+                    height="16"
+                  >
+                    <path d="M7 9a2 2 0 012-2h6a2 2 0 012 2v6a2 2 0 01-2 2H9a2 2 0 01-2-2V9z" />
+                    <path d="M5 3a2 2 0 00-2 2v6a2 2 0 002 2V5h8a2 2 0 00-2-2H5z" />
+                  </svg>
+                </>
+              ),
+            },
+          ]}
         />
       </div>
     </div>

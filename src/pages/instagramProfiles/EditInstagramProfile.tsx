@@ -39,7 +39,9 @@ export default function EditInstagramProfile(): ReactElement {
       .then(() => setIsValid(true))
       .catch((err) => {
         setIsValid(false);
-        if (state[err.path as keyof InstagramProfile] !== undefined) {
+        const firstPathMatch = err.path.match(/^([^[.]+)/);
+        const path = firstPathMatch ? firstPathMatch[1] : err.path;
+        if (state[path as keyof InstagramProfile] !== undefined) {
           setErrors(err.errors);
         }
       });
@@ -134,7 +136,7 @@ export default function EditInstagramProfile(): ReactElement {
         className="-mt-4 flex-1  overflow-y-auto pl-tabl pr-tabr py-10 divide-y-2 divide-gray-100"
         onSubmit={onSave}
       >
-        {errors.length ? (
+        {errors.length && !isValid ? (
           <ul className="pb-4 -mt-4 list-disc list-inside">
             {errors.map((err) => (
               <li className="text-red-500">{err}</li>

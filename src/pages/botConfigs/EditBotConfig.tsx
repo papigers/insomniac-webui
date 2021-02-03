@@ -220,8 +220,9 @@ export default function EditBotConfig(): ReactElement {
       .then(() => setIsValid(true))
       .catch((err) => {
         setIsValid(false);
-        console.log(err);
-        if (state[err.path as keyof BotConfig] !== undefined) {
+        const firstPathMatch = err.path.match(/^([^[.]+)/);
+        const path = firstPathMatch ? firstPathMatch[1] : err.path;
+        if (state[path as keyof BotConfig] !== undefined) {
           setErrors(err.errors);
         }
       });
@@ -487,6 +488,7 @@ export default function EditBotConfig(): ReactElement {
                 <Select
                   label="Sort Followers"
                   name="following_sort_order"
+                  onChange={setAttribute}
                   options={Object.values(FollowersSortOrder).map((value) => ({
                     value,
                     label: _capitalize(value),
@@ -496,14 +498,13 @@ export default function EditBotConfig(): ReactElement {
                 />
               ) : null}
             </div>
-            <Parameter
-              type={ParameterType.RANGE}
+            <Slider
               name="unfollow"
               label="Unfollow Count"
               value={state.unfollow}
-              onChange={setParameter}
+              onChange={setAttribute}
               className="py-4"
-              minValue={0}
+              minValue={1}
               maxValue={1000}
             />
             <Parameter
@@ -1230,8 +1231,8 @@ export default function EditBotConfig(): ReactElement {
         className="-mt-2 flex-1 overflow-y-auto pl-tabl pr-tabr pb-10 divide-y-2 divide-gray-100"
         onSubmit={onSave}
       >
-        {errors.length ? (
-          <ul className="list-disc list-inside">
+        {errors.length && !isValid ? (
+          <ul className="list-disc list-inside py-4">
             {errors.map((err) => (
               <li className="text-red-500">{err}</li>
             ))}
